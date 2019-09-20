@@ -1,0 +1,67 @@
+Interpretation
+    Concrente syntax (string) ---lexer-> tokens ---parse-> abstract syntax ---type check--
+    --> typed syntax ---code gen-> instructions ---assembler-> byte code
+
+    0.  Arithmetic expressoins
+        Evaluation function:
+            eval: Exp -> Val    [Val = Integer]
+            eval (EInt i) = i
+            eval (EDiv e1 e2) = eval e1 / eval e2
+
+        Evaluation relation (Big-step symantics)
+            *down arrow* belongs to Exp x Val
+            Given by rules:                                                         i2 != 0
+                                                e1 *down arrow* i1  e2 *down arrow* i2
+                ---------------------           --------------------------------------
+                EInt i *down arrow* i           EDiv e1 e2 *down arrow* (i1/i2)
+
+            Example:
+
+                                          evInt---------------------   evInt-----------------------
+                                                EDiv 6 *down arrow* 6        EInt 2 *down arrow* 2
+             evInt --------------------   evDiv-------------------------------------------------------
+                    EInt g *down arrow* g       EDiv (EInt 6) (EInt 2) *down arrow* 3
+             evDiv  ------------------------------------------------------------
+                    EDiv (EInt 9) (EDiv (EInt 6) (EInt 2) *down arrow* 3
+
+            Correctness of evaluation function
+                * if e *down arrow* v then eval(e) = v (for all e in Exp and v in Val)
+    
+    1. Variables
+        Need an environment γ ∈ Env for evaluation of variables
+            - Evfunction: eval: Env x Exp -> Val
+            - Evrelation  - T_ *down arrow*_        subgroup of Env x Exp x Val
+
+                    γ(x) = variables                γ is a fininte map from ident to Val.
+            evId --------------------------             we write γ[x=v] for environmental update
+                  γ T EId x *down arrow* v
+
+            Example 
+            
+                                                -------------------
+                x=3, y=5 T EId x *down arrow*   EInt 1 *down arrow*
+                ------------------------------------------------------
+                x=3, y=5 T EPlus(EIdx) (EInt1) *down arrow* 4 
+
+    2. Assignments
+        Evaluation is order sensitive and neets to return an updated environment.
+            - Ev Relation _T_ *down arrow* <_;_> belongs to Env x Exp x Val x Env
+            - Ev frunction eval: Env x Exp -> Val x Env
+
+        γ T EPostIncr(x) *down arrow* < γ(x); γ[x = γ(x) + 1]>
+        
+        γ T e *down arrow* <v; γ'>
+        --------------------------------------
+        γ T EAss(x, e) *down arrow* <v;γ'[x=v]>
+
+        Correctness of evaluation function:
+            eval(γ,e) = (v, γ') iff γ T e *down arrow* <v, γ'>
+
+    3. Booleans
+        Val = Bool u+ Integer
+
+    4. Primitve functions
+        γ T EReadInt *down arrow* <i, γ>
+
+    5. Statements
+        Evaluation function: _ T _ *down arrow* _ belongs to Env x Stm x Env

@@ -1,0 +1,87 @@
+Deeper look into Lexers
+
+Regular Languages
+    * Assume a finit alphabet Σ.
+    * A language L is a set of sequences of Σ, so L is a subset of Σ*.
+    * A word , w, is an element of Σ*. Words form a monoid with concatenation, written ww, as 
+        operation and the empty sequence ε as unit.
+        Laws: 
+            u(vw) = (uv)w   associativity
+            εw    = w       left-unit
+            wε    = w       right-unit
+    * On set of words (aka languages) we identify the following operations:
+        Let L, L' be subset of Σ*
+        {ε} is the language consisting just of the empty sequence/word.
+        L.L' = {uv | u belongs to L, v belongs to L'} is language concatenation.
+        Laws:
+            {ε}*L = L = L*{ε}
+            (L1*L2)*L3 = L1*(L2*L3)
+            L u L' is the union of L and L', alternatively written as L+L'
+            0 the empty set is the unit of +
+            L/L' contains the words of L which are not in L'
+            L^n = {w_1, ..., w_n | wi belongs to L}
+            L* = U(n belongs to psi) L^n
+            {a} (a belongs to Σ) is the language of the single character word a
+        Languages form a Kleene Algebra under the operations .,+,*
+            - ({ε} .) form a monoid.
+            - (0, +) firn a commutative monoid L+L'=L'+L
+            - + distributes over concatenation, L.(L1+L2) = L.L1 + L.L2, (L1+L2)*L = L1.L + L2.L
+            - Star: L* = {ε} + L.L* = {ε} + L*.L
+Regular Expressions (RE)
+    RE's are given by a (context free) grammar.
+    Elements of RE r,s ::= 0        [[0]]   = 0 
+                         | ε        [[ε]]   = {ε}
+                         | a        [[a]]   = {a}
+                         | r.s      [[r.s]] = [[r]].[[s]]
+                         | r+s      [[r+s]] = [[r]]+[[s]]
+                         | r*       [[r*]]  = [[r]]*
+    Notation: 
+        r+ = r.r*
+        r.2 = ε + r
+        0 .. g = '0' + '1' + ... 'g'
+    Examples:
+        Digit = 0 .. 9
+        NonZero = 1 .. 9
+        Integer = ('-').2 .('0' + NonZero Digit*)
+        Lower = 'a' ... 'z'
+        Upper = 'A' ... 'Z'
+        Letter = Lower + Upper
+        Identifier = Letter+ ('_' + Digit + Letter)*
+        Identifier' = Letter (--"--)
+        (Note [[Identifier]] = [[Identifier']])
+    Toy language for Σ = {0,1}. We call it Second to Last is One, SLO
+        SLO = (0+1)*.1.(0+1)
+    Question: How to efficiently decide the membership of a word w in a language 
+                given by a RE r? w <-[[r]]
+
+    Language Derivatives
+        δu L = {v | uv belongs to L} derication of L by u
+        Note: w blongs to L <-> ε belongs to δ_w L
+        Strategy: To decide if w blongs to [[r]], compute δ_w[[r]] = L' and check if ε belongs to L'
+        Laws of Derivation 
+            - δ_ε L = L
+            - δ_uv L = δ_v (δ_u L)
+            - δ_ε = id
+            - δ_uv = δ_u . δ_v 
+        A language is called nullable if it contains the empty word, ε belongs to L
+        Nullable of RE: N(r) = ε, if ε belongs to [[r]] OR 0, if ε doesn't belong to [[r]]
+        Define N(r) by recursion or r:
+            N(0) = 0            N(r+s) = N(r) + N(s)
+            N(ε) = ε            N(r.s) = N(r) . N(s)
+            n(a) = 0            N(r*)  = ε
+        Solution: w belongs to [[r] is decided by checking N(δ_w r) = ε
+    Derivative of a RE
+        Specification [[δ_a r]] = δ_a [[r]]
+        δ_a(0) = 0         δ_a(r+s) = δ_a(r) + δ_a(s) 
+        δ_a(ε) = 0         δ_a(r.s) = δ_a(r) + N(r)δ_a s
+        δ_a(a) = ε         δ_a(r*) = δ_a . r*
+        δ_a(b) = 0 (b != a)
+    SLO = (0+1)* 1 (0+1) = Σ* 1 Σ
+    Does 010 belongs to SLO? <-> 01 belong to δ_0 SLO?
+        δ_0 SLO = δ_0(Σ*(1Σ)) = (δ_0 Σ*) 1Σ + N(Σ*) δ_0(1Σ*) =
+        = δ_0 Σ Σ*1Σ + ε.(δ_0 1.Σ + N(1).δ_0 Σ) = 
+        = SLO + (0 . Σ + 0 . δ_0 Σ) = SLO
+
+    A language L is regular if the set S = {δ_w L | w belongs to Σ*} is finite
+
+    DFA - Detrministic Finite Automaton 

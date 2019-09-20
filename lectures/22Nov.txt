@@ -1,0 +1,93 @@
+Type Checking
+    Ideally:        If an expression is type-correct, it has a value.
+    In practise:    If an expression is type-correct, it has a value or diverges.
+
+    Type Checking Expressions
+        A typing context Γ is a finite map variables x to type t. A variable x is in scope if x ∈ Γ.
+        Write Γ = x1:t1, ..., xn:tn
+
+        Typing Judgement: Γ T e:t "in context Γ, expression e has type t"
+
+
+        variable:  --------------- Γ(x) = t
+        x            Γ T EId x : t 
+
+        increments: ------------------  Γ(x) = t ∈ {int, double}
+        (x++)       Γ T EPostIncr x : t
+
+
+                    Γ T e1:t  Γ T e2:t
+        addition: ------------------------ Γ(x) = t ∈ {int, double}
+        e1+e2       Γ T EAdd e1 e2 : t
+
+                        Γ T e1:t  Γ T e2:t
+        compareison: ------------------------ Γ(x) = t
+        e1<e2           Γ T EAdd e1 e2 : bool
+
+
+        infer (Cxt Γ, Exp e) : Type U+ Err             (U+ some regular U with a plus sign above)
+
+        check (Cxt Γ, Exp e, Type T) : void U+ Err
+        
+        check(Γ, e, t) = do
+            t'<-infer(Γ,e)
+            if t=! t' then error
+
+        infer (Γ, EAdd e1 e2) = do
+            t1<- infer (Γ, e1)
+            if t1 !∈ {int double} then error
+            check (Γ, e1, t1)
+            return t1
+
+    Type Checking Statements
+        Refinement: A typing context Γ is a list (or stack) of typing blocks Δ. Δ block Δ is finite map
+                    from variables to types.
+
+        Judgement: Γ T s => Γ' In context Γ, statement s is type-correct. After s the context is Γ'.
+
+
+        Declarations:
+
+            -----------------------------------------
+            Γ.Δ T SDecl(t, x1, ..., xn) => Γ.Δ, x1:t, x2:t ...
+
+            Γ.Δ T e : T
+            ---------------------------
+            Γ.Δ T SInit(t,x,e) => Γ.Δ, x:t
+        
+        Block:
+
+            Γ.Δ. T ss => Γ.Δ.Δ'                 (ss statement list)
+            -----------------------
+            Γ.Δ T SBLock ss => Γ.Δ
+
+        While:
+
+            Γ T e : bool    Γ. T s => Γ.Δ
+            -----------------------
+            Γ T While e s => Γ
+
+    Function Calls
+        We use a function signature Σ that maps function names f to tuples (t1..n, t) where 
+            t1..n are the types of the functions parameter and t is the return type.
+
+        double foo(int x, bool b) -> Σ(foo) = (int, bool; double)
+
+        Γ T e1:t1 .... Γ T en:tn
+        --------------------------------- Σ(f) = (t1..n, t)
+        Γ T_Σ EApp(f, e1,.. en) : t
+
+        return:
+
+            Γ T e:t0
+            ---------------------------
+            Γ T_Σt0 SReturn e => t
+
+    Summary: 
+        Γ T_Σ e : t 
+        Γ T_Σt0 s : Γ'
+        Γ T_Σt0 ss : Γ'  
+
+
+
+        
